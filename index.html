@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Cummins: Capacity &amp; Supplier Risk — AJ Portfolio</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --s0:#f9f9f7;--s1:#fcfcfb;--ink:#0b0b0b;--sec:#52514e;--muted:#898781;
+  --grid:#e1e0d9;--border:rgba(11,11,11,.10);
+  --blue:#6366f1;--orange:#eb6834;--aqua:#1baf7a;--yellow:#eda100;
+  --pink:#e87ba4;--violet:#4a3aa7;
+  --good:#0ca30c;--warn:#fab219;--crit:#d03b3b;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:13px;background:var(--s0);color:var(--ink);}
+
+/* ── NAV ── */
+.snav{position:sticky;top:0;z-index:200;background:rgba(249,249,247,.96);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;gap:6px;height:48px;}
+.snav-brand{font-size:13px;font-weight:800;color:#0f172a;text-decoration:none;margin-right:16px;white-space:nowrap;}
+.snav-brand span{color:var(--blue);}
+.snav-items{display:flex;align-items:center;gap:2px;flex:1;overflow:hidden;}
+.snav-link{padding:5px 10px;border-radius:5px;font-size:12px;font-weight:500;color:#475569;text-decoration:none;white-space:nowrap;transition:background .12s,color .12s;}
+.snav-link:hover{background:rgba(99,102,241,.07);color:#0f172a;}
+.sndrop{position:relative;}
+.sndrop-toggle{display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:5px;font-size:12px;font-weight:500;color:#475569;cursor:pointer;user-select:none;white-space:nowrap;transition:background .12s,color .12s;}
+.sndrop-toggle:hover,.sndrop:hover .sndrop-toggle{background:rgba(99,102,241,.07);color:#0f172a;}
+.sndrop-toggle svg{width:9px;height:9px;transition:transform .18s;}
+.sndrop:hover .sndrop-toggle svg{transform:rotate(180deg);}
+.sndrop-menu{position:absolute;top:calc(100% + 6px);left:0;background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:5px;min-width:250px;box-shadow:0 12px 40px rgba(0,0,0,.14);opacity:0;visibility:hidden;pointer-events:none;transform:translateY(-4px);transition:opacity .15s,transform .15s,visibility .15s;}
+.sndrop:hover .sndrop-menu{opacity:1;visibility:visible;pointer-events:auto;transform:translateY(0);}
+.sndrop-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;font-size:11px;font-weight:500;color:#475569;text-decoration:none;transition:background .1s,color .1s;}
+.sndrop-item:hover,.sndrop-item.active-link{background:rgba(99,102,241,.09);color:#0f172a;}
+.sndrop-icon{width:24px;height:24px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;}
+.sndrop-lbl{font-weight:600;color:#0f172a;font-size:11px;}
+.sndrop-sub{font-size:10px;color:#94a3b8;margin-top:1px;}
+.sndrop-div{height:1px;background:#e2e8f0;margin:4px 2px;}
+.snav-right{margin-left:auto;display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.snav-badge{padding:4px 12px;border-radius:5px;font-size:11px;font-weight:600;border:1px solid #e2e8f0;color:#475569;text-decoration:none;transition:border-color .12s,color .12s,background .12s;}
+.snav-badge:hover{background:#eef2ff;border-color:#6366f1;color:#6366f1;}
+
+/* ── BANNERS ── */
+.conf-banner{background:#fff8e1;border-bottom:2px solid var(--yellow);padding:10px 20px;font-size:11px;color:#7c5700;line-height:1.6;}
+.demo-banner{background:#fffbeb;border-bottom:1px solid #f59e0b;padding:7px 20px;font-size:11px;font-weight:600;color:#92400e;}
+
+/* ── TABS ── */
+.tab-bar{display:flex;padding:0 20px;border-bottom:1px solid var(--grid);background:var(--s0);position:sticky;top:48px;z-index:190;overflow-x:auto;scrollbar-width:none;}
+.tab-bar::-webkit-scrollbar{display:none;}
+.tab-btn{padding:10px 16px;border:none;background:none;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:color .15s,border-color .15s;flex-shrink:0;}
+.tab-btn.active{color:var(--blue);border-bottom-color:var(--blue);}
+.tab-btn:hover:not(.active){color:var(--ink);}
+.tab-pane{display:none;}
+.tab-pane.active{display:block;}
+
+/* ── LAYOUT ── */
+main{padding:20px;max-width:1300px;margin:0 auto;}
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin-bottom:20px;}
+.kpi{background:var(--s1);border:1px solid var(--border);border-radius:8px;padding:14px 16px;}
+.kpi .lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;}
+.kpi .val{font-size:21px;font-weight:700;margin:4px 0 2px;color:var(--ink);}
+.kpi .sub{font-size:11px;color:var(--sec);}
+.kpi.bl{border-left:3px solid var(--blue);}
+.kpi.or{border-left:3px solid var(--orange);}
+.kpi.gd{border-left:3px solid var(--good);}
+.kpi.yw{border-left:3px solid var(--yellow);}
+.kpi.aq{border-left:3px solid var(--aqua);}
+.kpi.vt{border-left:3px solid var(--violet);}
+.kpi.pk{border-left:3px solid var(--pink);}
+
+.chart-grid{display:grid;gap:16px;margin-bottom:16px;}
+.cols2{grid-template-columns:1fr 1fr;}
+.cols3{grid-template-columns:1fr 1fr 1fr;}
+.card{background:var(--s1);border:1px solid var(--border);border-radius:8px;padding:16px;}
+.card .ttl{font-size:12px;font-weight:700;margin-bottom:3px;color:var(--ink);}
+.card .sub2{font-size:11px;color:var(--muted);margin-bottom:12px;}
+.cw{position:relative;height:220px;}
+.cw-tall{position:relative;height:280px;}
+.cw-lg{position:relative;height:340px;}
+.cw-sm{position:relative;height:180px;}
+
+/* ── TABLES ── */
+.tbl-wrap{overflow-x:auto;margin-top:4px;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{padding:8px 10px;text-align:left;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;border-bottom:2px solid var(--grid);background:var(--s0);}
+td{padding:8px 10px;border-bottom:1px solid var(--grid);color:var(--sec);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#f4f3f0;}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;}
+.b-crit{background:#fee2e2;color:var(--crit);}
+.b-warn{background:#fef9c3;color:#92400e;}
+.b-good{background:#dcfce7;color:#166534;}
+.b-info{background:#ede9fe;color:var(--violet);}
+.b-blue{background:#eef2ff;color:var(--blue);}
+.b-muted{background:#f3f4f6;color:#374151;}
+.b-orange{background:#fff3ed;color:#c2410c;}
+
+/* ── DECISION BLOCK ── */
+.decision-block{background:var(--s1);border:1px solid var(--border);border-left:4px solid var(--blue);border-radius:8px;padding:18px;margin-top:16px;}
+.decision-block .db-ttl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;}
+.decision-block p{font-size:12px;color:var(--sec);line-height:1.7;}
+
+/* ── CALLOUT PAIR ── */
+.callout-pair{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.callout{background:var(--s1);border:1px solid var(--border);border-radius:8px;padding:18px;text-align:center;}
+.callout .cv{font-size:30px;font-weight:700;}
+.callout .cl{font-size:11px;color:var(--muted);margin-top:4px;}
+.callout .cs{font-size:11px;color:var(--sec);margin-top:10px;line-height:1.55;text-align:left;}
+.callout.or{border-top:3px solid var(--orange);}
+.callout.gd{border-top:3px solid var(--good);}
+.callout.bl{border-top:3px solid var(--blue);}
+.callout.yw{border-top:3px solid var(--yellow);}
+
+/* ── QUAD LEGEND ── */
+.quad-legend{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;}
+.quad-item{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:var(--s0);border-radius:6px;font-size:11px;color:var(--sec);}
+.quad-dot{width:10px;height:10px;border-radius:50%;margin-top:2px;flex-shrink:0;}
+
+/* ── PROCESS TIMELINE (Tab 5) ── */
+.proc-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.proc-card{background:var(--s1);border:1px solid var(--border);border-radius:8px;padding:16px;}
+.proc-card .ph{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:12px;}
+.proc-step{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;}
+.proc-step:last-child{margin-bottom:0;}
+.step-dot{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;margin-top:1px;}
+.step-txt .st{font-size:11px;font-weight:600;color:var(--ink);}
+.step-txt .sd{font-size:10px;color:var(--muted);margin-top:2px;}
+.proc-arrow{display:flex;justify-content:center;font-size:16px;color:var(--muted);padding:2px 0;}
+
+/* ── FOOTER ── */
+footer{margin-top:32px;padding:16px 20px;border-top:1px solid var(--grid);font-size:11px;color:var(--muted);display:flex;gap:16px;flex-wrap:wrap;align-items:center;}
+footer a{color:var(--blue);text-decoration:none;}
+footer a:hover{text-decoration:underline;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:800px){
+  .cols2,.cols3,.proc-grid{grid-template-columns:1fr;}
+  .callout-pair{grid-template-columns:1fr;}
+  .quad-legend{grid-template-columns:1fr;}
+}
+@media(max-width:480px){
+  .kpi-row{grid-template-columns:1fr 1fr;}
+  main{padding:14px;}
+  .snav-items .snav-link{display:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav class="snav">
+  <a href="https://asthaj12.github.io" class="snav-brand">AJ<span> · Portfolio</span></a>
+  <div class="snav-items">
+    <div class="sndrop">
+      <div class="sndrop-toggle">Dashboards<svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 3.5l3 3 3-3"/></svg></div>
+      <div class="sndrop-menu">
+        <a class="sndrop-item active-link" href="https://asthaj12.github.io/cummins-capacity-risk/">
+          <div class="sndrop-icon" style="background:rgba(235,104,52,.13)">🏭</div>
+          <div><div class="sndrop-lbl">Cummins Capacity &amp; Risk</div><div class="sndrop-sub">Supplier risk · Recovery · $35M averted</div></div>
+        </a>
+        <div class="sndrop-div"></div>
+        <a class="sndrop-item" href="https://asthaj12.github.io/forecast-governance/">
+          <div class="sndrop-icon" style="background:rgba(99,102,241,.12)">📊</div>
+          <div><div class="sndrop-lbl">Forecast Governance</div><div class="sndrop-sub">Anomaly triage · Bias correction</div></div>
+        </a>
+        <a class="sndrop-item" href="https://asthaj12.github.io/forecast-accuracy/">
+          <div class="sndrop-icon" style="background:rgba(16,185,129,.12)">🎯</div>
+          <div><div class="sndrop-lbl">Forecast Accuracy</div><div class="sndrop-sub">Bias · sMAPE · Planner adjustments</div></div>
+        </a>
+        <a class="sndrop-item" href="https://asthaj12.github.io/replenishment-risk/">
+          <div class="sndrop-icon" style="background:rgba(244,63,94,.12)">⚡</div>
+          <div><div class="sndrop-lbl">Safety Stock Monitor</div><div class="sndrop-sub">Replenishment risk · Violations</div></div>
+        </a>
+        <a class="sndrop-item" href="https://asthaj12.github.io/seasonal-planning/">
+          <div class="sndrop-icon" style="background:rgba(237,161,0,.12)">📅</div>
+          <div><div class="sndrop-lbl">Scenario Planning</div><div class="sndrop-sub">Demand scenarios · Commitment staging</div></div>
+        </a>
+        <a class="sndrop-item" href="https://asthaj12.github.io/pricing-demand-response/">
+          <div class="sndrop-icon" style="background:rgba(99,102,241,.12)">💹</div>
+          <div><div class="sndrop-lbl">Pricing &amp; Demand Response</div><div class="sndrop-sub">Elasticity · Lift analysis</div></div>
+        </a>
+      </div>
+    </div>
+    <a class="snav-link" href="https://asthaj12.github.io#projects">Projects</a>
+    <a class="snav-link" href="https://asthaj12.github.io#skills">Skills</a>
+  </div>
+  <div class="snav-right">
+    <a class="snav-badge" href="https://linkedin.com/in/asthajain12" target="_blank">LinkedIn ↗</a>
+    <a class="snav-badge" href="https://github.com/asthaj12" target="_blank">GitHub ↗</a>
+  </div>
+</nav>
+
+<!-- ── BANNERS ── -->
+<div class="conf-banner">
+  <strong>Confidentiality notice:</strong> All supplier names, engine line identifiers, and production figures are synthetic. Frameworks, processes, and methodologies reflect actual work performed. Quantitative estimates use publicly disclosed Cummins Engine segment financials (~$9B revenue) combined with operational parameters verified against industry benchmarks. All supplier names, engine line identifiers, and production figures are synthetic.
+</div>
+<div class="demo-banner">⚠ DEMO DATA — Illustrative numbers only. Cummins Inc., Sep 2018 – Jan 2020. Supplier Capacity Planning &amp; Risk Management.</div>
+
+<!-- ── TAB BAR ── -->
+<div class="tab-bar" id="tabBar">
+  <button class="tab-btn active" data-tab="overview">Portfolio Overview</button>
+  <button class="tab-btn" data-tab="scoring">Supplier Risk Scoring</button>
+  <button class="tab-btn" data-tab="recovery">Recovery Tracker</button>
+  <button class="tab-btn" data-tab="coverage">Engine Line Coverage</button>
+  <button class="tab-btn" data-tab="detection">Detection Speed</button>
+</div>
+
+<main>
+
+<!-- ════════════════════════════════════════════════
+     TAB 1 — PORTFOLIO OVERVIEW
+════════════════════════════════════════════════ -->
+<div class="tab-pane active" id="tab-overview">
+  <div class="kpi-row">
+    <div class="kpi bl"><div class="lbl">Global Suppliers Monitored</div><div class="val">800+</div><div class="sub">Across 3 continents</div></div>
+    <div class="kpi or"><div class="lbl">Production Exposure Averted</div><div class="val">~$35M</div><div class="sub">Over 17-month program</div></div>
+    <div class="kpi yw"><div class="lbl">Detection Speed Improvement</div><div class="val">~50%</div><div class="sub">Day 16 → Day 8</div></div>
+    <div class="kpi gd"><div class="lbl">Recovery Time Reduction</div><div class="val">16→6 wks</div><div class="sub">62.5% compression</div></div>
+    <div class="kpi aq"><div class="lbl">Annual Continuity Protected</div><div class="val">$8M+</div><div class="sub">Per year, recovery events</div></div>
+  </div>
+
+  <div class="chart-grid cols2">
+    <div class="card">
+      <div class="ttl">Before vs. After — Key Operational Metrics</div>
+      <div class="sub2">Framework impact across detection, recovery, and escalation speed</div>
+      <div class="cw-tall"><canvas id="c-ov-beforeafter"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="ttl">Supplier Risk Tier Distribution</div>
+      <div class="sub2">800+ suppliers segmented by supply continuity risk</div>
+      <div class="cw-tall"><canvas id="c-ov-donut"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="ttl">Monthly Production Exposure Averted — Framework Maturation (18 months)</div>
+    <div class="sub2">Cumulative value protected grows as supplier coverage expands and scoring automation matures</div>
+    <div class="cw"><canvas id="c-ov-monthly"></canvas></div>
+  </div>
+
+  <div class="decision-block">
+    <div class="db-ttl">Decision Summary</div>
+    <p>"The aerospace and automotive supply chain lesson: the cost of a supplier failure compounds daily. The only lever is early detection — but only if you can distinguish theoretical nameplate capacity from executable capacity. Suppliers that couldn't prove executable capacity (machine run-rates + shift data) were disqualified from winning next program expansion. That alignment of supply risk consequence with business outcome is what turned a monitoring program into a strategic capability."</p>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════
+     TAB 2 — SUPPLIER RISK SCORING
+════════════════════════════════════════════════ -->
+<div class="tab-pane" id="tab-scoring">
+  <div class="kpi-row">
+    <div class="kpi bl"><div class="lbl">Suppliers Scored</div><div class="val">800+</div><div class="sub">Global coverage</div></div>
+    <div class="kpi or"><div class="lbl">Critical Risk (Top 5%)</div><div class="val">~40</div><div class="sub">Immediate action required</div></div>
+    <div class="kpi vt"><div class="lbl">Scoring Dimensions</div><div class="val">4</div><div class="sub">Capacity, lead time, criticality, health</div></div>
+    <div class="kpi gd"><div class="lbl">Avg Days to Score Update</div><div class="val">1 day</div><div class="sub">vs. 16 days previously</div></div>
+    <div class="kpi yw"><div class="lbl">Auto-Alerts Configured</div><div class="val">Yes</div><div class="sub">Threshold breach → instant notify</div></div>
+  </div>
+
+  <div class="chart-grid cols2">
+    <div class="card">
+      <div class="ttl">Risk Score Distribution — 800+ Suppliers</div>
+      <div class="sub2">Right tail reveals concentration of high-risk suppliers requiring active management</div>
+      <div class="cw"><canvas id="c-sc-dist"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="ttl">Risk Score Dimensions — Weighting</div>
+      <div class="sub2">Executable capacity gap anchors the model; financial health is lagging, not leading</div>
+      <div class="cw"><canvas id="c-sc-dims"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="ttl">Risk Score vs. Production Criticality — Quadrant View</div>
+    <div class="sub2">Upper-right quadrant: high-risk AND high-criticality suppliers require immediate intervention plans</div>
+    <div class="cw-tall"><canvas id="c-sc-scatter"></canvas></div>
+    <div class="quad-legend">
+      <div class="quad-item"><div class="quad-dot" style="background:var(--crit)"></div><strong>Immediate Action</strong> — High risk + High criticality. Pre-agreed escalation path, weekly executive review.</div>
+      <div class="quad-item"><div class="quad-dot" style="background:var(--warn)"></div><strong>Strategic Buffer</strong> — Low risk + High criticality. Dual-source development, inventory buffer.</div>
+      <div class="quad-item"><div class="quad-dot" style="background:var(--orange)"></div><strong>Monitor Closely</strong> — High risk + Low criticality. Monthly review, qualification of alternates.</div>
+      <div class="quad-item"><div class="quad-dot" style="background:var(--good)"></div><strong>Standard Cadence</strong> — Low risk + Low criticality. Quarterly review, spot market acceptable.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ttl">Top 10 At-Risk Suppliers — Anonymized</div>
+    <div class="sub2">Ranked by composite risk score. Action owner and milestone tracked weekly.</div>
+    <div class="tbl-wrap">
+      <table id="scoring-table">
+        <thead>
+          <tr>
+            <th>Supplier</th><th>Risk Score</th><th>Production Criticality</th><th>Primary Gap</th><th>Source Type</th><th>Status</th><th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="scoring-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════
+     TAB 3 — RECOVERY TRACKER
+════════════════════════════════════════════════ -->
+<div class="tab-pane" id="tab-recovery">
+  <div class="kpi-row">
+    <div class="kpi or"><div class="lbl">Avg Recovery Before</div><div class="val">16 wks</div><div class="sub">Unstructured response</div></div>
+    <div class="kpi gd"><div class="lbl">Avg Recovery After</div><div class="val">6 wks</div><div class="sub">Structured framework</div></div>
+    <div class="kpi bl"><div class="lbl">Improvement</div><div class="val">62.5%</div><div class="sub">Time compression</div></div>
+    <div class="kpi yw"><div class="lbl">Annual Recovery Events</div><div class="val">~8–12</div><div class="sub">Across engine lines</div></div>
+    <div class="kpi aq"><div class="lbl">Annualized Savings</div><div class="val">$8M+</div><div class="sub">Production continuity protected</div></div>
+  </div>
+
+  <div class="chart-grid cols2">
+    <div class="card">
+      <div class="ttl">Recovery Time by Root Cause — Before vs. After</div>
+      <div class="sub2">Bottleneck diagnosis before negotiating drove the largest compression gains</div>
+      <div class="cw-tall"><canvas id="c-rc-rootcause"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="ttl">Individual Recovery Case Timelines</div>
+      <div class="sub2">6 anonymized cases before framework vs. 6 after — week-level resolution</div>
+      <div class="cw-tall"><canvas id="c-rc-cases"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="ttl">Recovery Milestone Compression — Phase Breakdown</div>
+    <div class="sub2">Each phase compressed: pre-agreed escalation rules eliminated ambiguity at each handoff point</div>
+    <div class="cw"><canvas id="c-rc-milestones"></canvas></div>
+  </div>
+
+  <div class="callout-pair">
+    <div class="callout or">
+      <div class="cv" style="color:var(--orange)">Pre-agreed</div>
+      <div class="cl">Escalation Trigger</div>
+      <div class="cs">Escalation was process-based, not personality-based. "If Milestone A is missed by Tuesday, the framework requires me to notify the Plant Manager." No negotiation, no delay — the milestone miss itself authorized the escalation, removing social friction from the critical path.</div>
+    </div>
+    <div class="callout gd">
+      <div class="cv" style="color:var(--good)">10 wks</div>
+      <div class="cl">Recovery Delta (16 → 6 weeks)</div>
+      <div class="cs">$8M+ annual production continuity protected = affected engine-line daily output × recovery events per year × 10-week recovery delta. Physical bottleneck was diagnosed before any recovery negotiation began — equipment, labor, tooling, or scheduling — so first commitments were credible.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════
+     TAB 4 — ENGINE LINE COVERAGE
+════════════════════════════════════════════════ -->
+<div class="tab-pane" id="tab-coverage">
+  <div class="kpi-row">
+    <div class="kpi bl"><div class="lbl">Engine Lines Monitored</div><div class="val">15+</div><div class="sub">All high-volume lines</div></div>
+    <div class="kpi or"><div class="lbl">Single-Source Components Tracked</div><div class="val">847</div><div class="sub">Priority monitoring</div></div>
+    <div class="kpi yw"><div class="lbl">Avg Commitment Lead Time</div><div class="val">12–24 mo</div><div class="sub">Tooling investment horizon</div></div>
+    <div class="kpi gd"><div class="lbl">Reversible Levers Available</div><div class="val">3</div><div class="sub">Before tooling required</div></div>
+    <div class="kpi pk"><div class="lbl">Irreversible Threshold</div><div class="val">Tooling</div><div class="sub">Locks in 12+ mo commitment</div></div>
+  </div>
+
+  <div class="chart-grid cols2">
+    <div class="card">
+      <div class="ttl">Engine Line Risk &amp; Capacity Headroom — All 15 Lines</div>
+      <div class="sub2">Lines with &lt;10% headroom and high risk score flagged for immediate supplier review</div>
+      <div class="cw-lg"><canvas id="c-cv-lines"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="ttl">Demand Scenario vs. Committed Capacity — 12-Month Horizon</div>
+      <div class="sub2">High scenario breaches committed capacity at month 7; tooling decision required by month 4</div>
+      <div class="cw-lg"><canvas id="c-cv-demand"></canvas></div>
+    </div>
+  </div>
+
+  <div class="chart-grid cols2">
+    <div class="card">
+      <div class="ttl">Capacity Levers — Reversible vs. Irreversible</div>
+      <div class="sub2">Exhausting reversible options before committing to tooling preserves optionality</div>
+      <div class="cw"><canvas id="c-cv-levers"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="ttl">Component Criticality Matrix — Engine Lines vs. Key Components</div>
+      <div class="sub2">Single-source = red (immediate risk). Dual-source = yellow (managed risk). Multi-source = green.</div>
+      <div class="tbl-wrap" style="margin-top:8px">
+        <table id="criticality-table">
+          <thead>
+            <tr>
+              <th>Engine Line</th><th>Fuel Injectors</th><th>Turbochargers</th><th>Fuel Pumps</th><th>EGR Valves</th><th>Overall Risk</th>
+            </tr>
+          </thead>
+          <tbody id="criticality-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════
+     TAB 5 — DETECTION SPEED
+════════════════════════════════════════════════ -->
+<div class="tab-pane" id="tab-detection">
+  <div class="kpi-row">
+    <div class="kpi or"><div class="lbl">Before Detection</div><div class="val">Day ~16</div><div class="sub">Biweekly manual review</div></div>
+    <div class="kpi gd"><div class="lbl">After Detection</div><div class="val">Day ~8</div><div class="sub">Daily automated scoring</div></div>
+    <div class="kpi bl"><div class="lbl">Method Change</div><div class="val">Daily auto</div><div class="sub">Biweekly → daily automated</div></div>
+    <div class="kpi yw"><div class="lbl">Lead Time Gained</div><div class="val">~8 days</div><div class="sub">Per gap event, on average</div></div>
+    <div class="kpi aq"><div class="lbl">Dollar Value of 8 Days</div><div class="val">$3M+</div><div class="sub">Per critical recovery event</div></div>
+  </div>
+
+  <div class="chart-grid cols2">
+    <div class="card">
+      <div class="ttl">Cumulative Gap Detection — Biweekly vs. Daily Automated</div>
+      <div class="sub2">Daily scoring detects 80% of gaps by day 5; biweekly review misses gaps for up to 14 days</div>
+      <div class="cw-tall"><canvas id="c-dt-cumulative"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="ttl">Cost of Delay by Detection Day</div>
+      <div class="sub2">For a typical critical engine-line supplier event — daily production value at risk per day of delayed detection</div>
+      <div class="cw-tall"><canvas id="c-dt-cost"></canvas></div>
+    </div>
+  </div>
+
+  <div class="proc-grid" style="margin-bottom:16px">
+    <div class="proc-card">
+      <div class="ph" style="color:var(--orange)">Old Process — Biweekly Review (avg ~16 days to escalation)</div>
+      <div class="proc-step">
+        <div class="step-dot" style="background:var(--muted)">1</div>
+        <div class="step-txt"><div class="st">Biweekly review meeting</div><div class="sd">Gaps detected at review cadence — avg Day 14–16</div></div>
+      </div>
+      <div class="proc-arrow">↓</div>
+      <div class="proc-step">
+        <div class="step-dot" style="background:var(--muted)">2</div>
+        <div class="step-txt"><div class="st">Manual gap assessment</div><div class="sd">Cross-reference supplier data — 1–2 days</div></div>
+      </div>
+      <div class="proc-arrow">↓</div>
+      <div class="proc-step">
+        <div class="step-dot" style="background:var(--muted)">3</div>
+        <div class="step-txt"><div class="st">Informal escalation</div><div class="sd">Personality-dependent — 2–3 days to reach decision-maker</div></div>
+      </div>
+      <div class="proc-arrow">↓</div>
+      <div class="proc-step">
+        <div class="step-dot" style="background:var(--crit)">!</div>
+        <div class="step-txt"><div class="st">Recovery initiated — Day 18–22</div><div class="sd">3–6 months before constraint reaches production floor</div></div>
+      </div>
+    </div>
+    <div class="proc-card">
+      <div class="ph" style="color:var(--good)">New Process — Daily Automated (avg ~3–4 days to escalation)</div>
+      <div class="proc-step">
+        <div class="step-dot" style="background:var(--good)">1</div>
+        <div class="step-txt"><div class="st">Daily automated scoring</div><div class="sd">Gap detected same day it crosses threshold — Day 1–3</div></div>
+      </div>
+      <div class="proc-arrow">↓</div>
+      <div class="proc-step">
+        <div class="step-dot" style="background:var(--good)">2</div>
+        <div class="step-txt"><div class="st">Auto-alert with context</div><div class="sd">Supplier name, gap magnitude, production impact pre-populated — same day</div></div>
+      </div>
+      <div class="proc-arrow">↓</div>
+      <div class="proc-step">
+        <div class="step-dot" style="background:var(--good)">3</div>
+        <div class="step-txt"><div class="st">Pre-agreed escalation path</div><div class="sd">Milestone miss → auto-escalate per framework. No negotiation. 1 day.</div></div>
+      </div>
+      <div class="proc-arrow">↓</div>
+      <div class="proc-step">
+        <div class="step-dot" style="background:var(--blue)">✓</div>
+        <div class="step-txt"><div class="st">Recovery initiated — Day 3–5</div><div class="sd">4–5 months before constraint reaches production floor</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="ttl">8-Day Lead Time Advantage — Quantified</div>
+    <div class="sub2">Dollar value per event across critical and standard supplier event types</div>
+    <div class="cw-sm"><canvas id="c-dt-value"></canvas></div>
+  </div>
+
+  <div class="decision-block">
+    <div class="db-ttl">Detection Economics</div>
+    <p>8 days faster detection × $300K–$500K daily exposure for a critical engine line = <strong>$2.4M–$4.0M protected per recovery event</strong>. At 8–12 recovery events per year, this compounds to $19M–$48M in risk coverage — before accounting for the 3–4 month earlier intervention window that prevented constraints from becoming production stops entirely. The framework's ROI was not in the detection tool — it was in the credibility of capacity data (executable vs. nameplate) and the pre-agreed escalation process that removed weeks of social friction from the critical path.</p>
+  </div>
+</div>
+
+</main>
+
+<footer>
+  <span>⚠ Demo data — All supplier names, engine line identifiers, and production figures are synthetic</span>
+  <span style="margin-left:auto">Built by Astha Jain · <a href="https://linkedin.com/in/asthajain12" target="_blank">LinkedIn</a></span>
+</footer>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   SHARED CHART DEFAULTS
+═══════════════════════════════════════════════════════════ */
+const C={
+  blue:'#6366f1',orange:'#eb6834',aqua:'#1baf7a',yellow:'#eda100',
+  pink:'#e87ba4',violet:'#4a3aa7',good:'#0ca30c',warn:'#fab219',crit:'#d03b3b',
+  sec:'#52514e',muted:'#898781',grid:'#e1e0d9',ink:'#0b0b0b'
+};
+
+const tooltip={
+  backgroundColor:'#fff',borderColor:C.grid,borderWidth:1,
+  titleColor:C.ink,bodyColor:C.muted,padding:10,
+  displayColors:true,boxWidth:8,boxHeight:8,
+  callbacks:{label:function(ctx){return ' '+ctx.dataset.label+': '+ctx.formattedValue;}}
+};
+
+const baseScales={
+  x:{grid:{color:C.grid,lineWidth:.5},ticks:{color:C.muted,font:{size:11}},border:{dash:[3,3]}},
+  y:{grid:{color:C.grid,lineWidth:.5},ticks:{color:C.muted,font:{size:11}},border:{dash:[3,3]}}
+};
+
+const legend11={labels:{font:{size:11},color:C.sec,boxWidth:9,padding:10}};
+
+/* ═══════════════════════════════════════════════════════════
+   TAB SWITCHING + LAZY CHART INIT
+═══════════════════════════════════════════════════════════ */
+const inited={};
+
+function initTab(tab){
+  if(inited[tab]) return;
+  inited[tab]=true;
+  if(tab==='overview')   initOverview();
+  if(tab==='scoring')    initScoring();
+  if(tab==='recovery')   initRecovery();
+  if(tab==='coverage')   initCoverage();
+  if(tab==='detection')  initDetection();
+}
+
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    const tab=btn.dataset.tab;
+    document.getElementById('tab-'+tab).classList.add('active');
+    initTab(tab);
+  });
+});
+
+// Init the visible tab on load
+initTab('overview');
+
+/* ═══════════════════════════════════════════════════════════
+   TAB 1 — PORTFOLIO OVERVIEW
+═══════════════════════════════════════════════════════════ */
+function initOverview(){
+
+  /* Before vs After — Horizontal grouped bar */
+  new Chart(document.getElementById('c-ov-beforeafter'),{
+    type:'bar',
+    data:{
+      labels:['Detection (days)','Recovery (weeks)','Escalation to action (days)','False alarm rate (%)'],
+      datasets:[
+        {label:'Before',data:[16,16,8,18],backgroundColor:C.orange+'cc',borderRadius:4,borderSkipped:false},
+        {label:'After', data:[8, 6, 2, 7], backgroundColor:C.aqua+'cc',  borderRadius:4,borderSkipped:false}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      indexAxis:'y',
+      plugins:{legend:{display:true,...legend11},tooltip:{...tooltip}},
+      scales:{
+        x:{...baseScales.x,max:20,title:{display:true,text:'Value',font:{size:11},color:C.muted}},
+        y:{...baseScales.y,grid:{display:false}}
+      }
+    }
+  });
+
+  /* Supplier risk tier donut */
+  new Chart(document.getElementById('c-ov-donut'),{
+    type:'doughnut',
+    data:{
+      labels:['Critical single-source (12%)','High-risk dual-source (24%)','Standard monitored (48%)','Low-risk spot-buy (16%)'],
+      datasets:[{
+        data:[12,24,48,16],
+        backgroundColor:[C.crit,C.orange,C.blue,C.aqua],
+        borderWidth:2,borderColor:'#fcfcfb',hoverOffset:6
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      cutout:'62%',
+      plugins:{
+        legend:{display:true,position:'bottom',labels:{font:{size:11},color:C.sec,boxWidth:10,padding:8}},
+        tooltip:{...tooltip,callbacks:{label:function(ctx){return ' '+ctx.label+': '+ctx.raw+'%';}}}
+      }
+    }
+  });
+
+  /* Monthly exposure averted — 18 months (Sep 2018 – Jan 2020) */
+  /* Sums to ~$34.1M ≈ $35M */
+  const months=['Sep\'18','Oct','Nov','Dec','Jan\'19','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan\'20'];
+  const monthly=[0.7,1.0,1.3,1.6,1.7,1.8,2.0,2.0,2.2,2.2,2.3,2.5,2.5,2.7,2.8,2.9,2.9];
+  // Cumulative
+  const cumul=monthly.reduce((acc,v,i)=>{acc.push((acc[i-1]||0)+v);return acc;},[]);
+
+  new Chart(document.getElementById('c-ov-monthly'),{
+    type:'bar',
+    data:{
+      labels:months,
+      datasets:[
+        {label:'Monthly ($M)',data:monthly,backgroundColor:C.blue+'88',borderRadius:3,borderSkipped:false,yAxisID:'y'},
+        {label:'Cumulative ($M)',data:cumul,type:'line',borderColor:C.orange,backgroundColor:'transparent',borderWidth:2,pointRadius:3,tension:.3,yAxisID:'y2'}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:true,...legend11},
+        tooltip:{...tooltip,callbacks:{label:function(ctx){return ' '+ctx.dataset.label+': $'+ctx.parsed.y.toFixed(1)+'M';}}}
+      },
+      scales:{
+        x:{...baseScales.x},
+        y:{...baseScales.y,title:{display:true,text:'Monthly ($M)',font:{size:11},color:C.muted},position:'left'},
+        y2:{...baseScales.y,title:{display:true,text:'Cumulative ($M)',font:{size:11},color:C.muted},position:'right',grid:{display:false}}
+      }
+    }
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TAB 2 — SUPPLIER RISK SCORING
+═══════════════════════════════════════════════════════════ */
+function initScoring(){
+
+  /* Risk score distribution — horizontal bar */
+  new Chart(document.getElementById('c-sc-dist'),{
+    type:'bar',
+    data:{
+      labels:['Score 0–20','Score 20–40','Score 40–60','Score 60–80','Score 80–100'],
+      datasets:[{
+        label:'# Suppliers',
+        data:[128,284,236,98,54],
+        backgroundColor:[C.good+'bb',C.aqua+'bb',C.yellow+'bb',C.orange+'bb',C.crit+'bb'],
+        borderRadius:4,borderSkipped:false
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      indexAxis:'y',
+      plugins:{legend:{display:false},tooltip:{...tooltip,callbacks:{label:function(ctx){return ' '+ctx.raw+' suppliers';}}}},
+      scales:{
+        x:{...baseScales.x,title:{display:true,text:'# Suppliers',font:{size:11},color:C.muted}},
+        y:{...baseScales.y,grid:{display:false}}
+      }
+    }
+  });
+
+  /* Risk scoring dimensions — horizontal bar */
+  new Chart(document.getElementById('c-sc-dims'),{
+    type:'bar',
+    data:{
+      labels:['Executable capacity gap','Recovery lead time','Single-source criticality','Financial health'],
+      datasets:[{
+        label:'Weight (%)',
+        data:[35,28,22,15],
+        backgroundColor:[C.crit+'cc',C.orange+'cc',C.yellow+'cc',C.blue+'cc'],
+        borderRadius:4,borderSkipped:false
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      indexAxis:'y',
+      plugins:{legend:{display:false},tooltip:{...tooltip,callbacks:{label:function(ctx){return ' '+ctx.raw+'% of composite score';}}}},
+      scales:{
+        x:{...baseScales.x,max:40,title:{display:true,text:'% of composite score',font:{size:11},color:C.muted}},
+        y:{...baseScales.y,grid:{display:false}}
+      }
+    }
+  });
+
+  /* Scatter: risk score vs production criticality */
+  // Quadrant color coding: High risk(>60)+High crit(>60)=crit, High risk+Low crit=orange, Low risk+High crit=warn, Low/Low=good
+  const quad=(rx,ry)=> rx>60&&ry>60?C.crit:rx>60&&ry<=60?C.orange:rx<=60&&ry>60?C.warn:C.good;
+  const scatterPts=[
+    {x:82,y:91},{x:88,y:85},{x:76,y:78},{x:91,y:72},{x:79,y:88},{x:84,y:65},{x:93,y:80},{x:72,y:95},
+    {x:68,y:38},{x:74,y:25},{x:85,y:42},{x:78,y:30},
+    {x:35,y:78},{x:28,y:85},{x:42,y:92},{x:18,y:76},{x:52,y:88},{x:38,y:68},{x:24,y:80},
+    {x:22,y:32},{x:38,y:18},{x:15,y:45},{x:48,y:28},{x:35,y:52},{x:12,y:22},{x:55,y:38},{x:42,y:15}
+  ];
+
+  new Chart(document.getElementById('c-sc-scatter'),{
+    type:'scatter',
+    data:{
+      datasets:[{
+        label:'Supplier',
+        data:scatterPts,
+        backgroundColor:scatterPts.map(p=>quad(p.x,p.y)+'cc'),
+        pointRadius:7,pointHoverRadius:9
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{...tooltip,callbacks:{label:function(ctx){
+          const rx=ctx.parsed.x,ry=ctx.parsed.y;
+          const q=rx>60&&ry>60?'Immediate Action':rx>60&&ry<=60?'Monitor Closely':rx<=60&&ry>60?'Strategic Buffer':'Standard';
+          return [' Risk score: '+rx,' Criticality: '+ry,' Quadrant: '+q];
+        }}}
+      },
+      scales:{
+        x:{...baseScales.x,min:0,max:100,title:{display:true,text:'Risk Score →',font:{size:11},color:C.muted}},
+        y:{...baseScales.y,min:0,max:100,title:{display:true,text:'Production Criticality →',font:{size:11},color:C.muted}}
+      }
+    },
+    plugins:[{
+      id:'quadrant-lines',
+      afterDraw(chart){
+        const {ctx,chartArea:{left,right,top,bottom},scales:{x,y}}=chart;
+        const mx=x.getPixelForValue(60),my=y.getPixelForValue(60);
+        ctx.save();
+        ctx.setLineDash([5,4]);
+        ctx.strokeStyle=C.grid;
+        ctx.lineWidth=1.2;
+        ctx.beginPath();ctx.moveTo(mx,top);ctx.lineTo(mx,bottom);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(left,my);ctx.lineTo(right,my);ctx.stroke();
+        ctx.restore();
+      }
+    }]
+  });
+
+  /* Scoring table */
+  const rows=[
+    {name:'Supplier A',score:93,crit:'Critical',gap:'Capacity gap 22%',src:'Single-source',status:'crit',action:'Disqualified from expansion'},
+    {name:'Supplier B',score:88,crit:'Critical',gap:'Lead time 24 mo',src:'Single-source',status:'crit',action:'Dual-source development'},
+    {name:'Supplier C',score:84,crit:'Critical',gap:'Shift constraint',src:'Single-source',status:'crit',action:'Weekly exec review'},
+    {name:'Supplier D',score:79,crit:'High',gap:'Equipment aging',src:'Dual-source',status:'warn',action:'Recovery plan agreed'},
+    {name:'Supplier E',score:76,crit:'Critical',gap:'Capacity gap 15%',src:'Single-source',status:'warn',action:'Capacity audit scheduled'},
+    {name:'Supplier F',score:74,crit:'High',gap:'Financial stress',src:'Dual-source',status:'warn',action:'Monthly financial review'},
+    {name:'Supplier G',score:72,crit:'High',gap:'Tooling backlog',src:'Dual-source',status:'warn',action:'Tooling investment plan'},
+    {name:'Supplier H',score:68,crit:'Medium',gap:'Lead time 18 mo',src:'Dual-source',status:'info',action:'Buffer inventory added'},
+    {name:'Supplier I',score:65,crit:'High',gap:'Labor shortage',src:'Single-source',status:'warn',action:'Escalation threshold set'},
+    {name:'Supplier J',score:62,crit:'Medium',gap:'Scheduling gaps',src:'Dual-source',status:'info',action:'Biweekly check-in'}
+  ];
+  const tb=document.getElementById('scoring-tbody');
+  rows.forEach(r=>{
+    const sc=r.status==='crit'?'b-crit':r.status==='warn'?'b-warn':'b-blue';
+    tb.innerHTML+=`<tr>
+      <td style="font-weight:600;color:${C.ink}">${r.name}</td>
+      <td><strong style="color:${r.score>=80?C.crit:r.score>=65?C.orange:C.warn}">${r.score}</strong></td>
+      <td><span class="badge ${r.crit==='Critical'?'b-crit':r.crit==='High'?'b-warn':'b-blue'}">${r.crit}</span></td>
+      <td>${r.gap}</td>
+      <td><span class="badge ${r.src.startsWith('Single')?'b-crit':'b-warn'}">${r.src}</span></td>
+      <td><span class="badge ${sc}">${r.status==='crit'?'At Risk':r.status==='warn'?'Monitor':'Active'}</span></td>
+      <td style="font-size:11px">${r.action}</td>
+    </tr>`;
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TAB 3 — RECOVERY TRACKER
+═══════════════════════════════════════════════════════════ */
+function initRecovery(){
+
+  /* Recovery time by root cause — grouped bar */
+  new Chart(document.getElementById('c-rc-rootcause'),{
+    type:'bar',
+    data:{
+      labels:['Equipment failure','Labor shortage','Tooling backlog','Scheduling gap'],
+      datasets:[
+        {label:'Before (weeks)',data:[20,14,18,10],backgroundColor:C.orange+'cc',borderRadius:4,borderSkipped:false},
+        {label:'After (weeks)', data:[7,  5,  8,  4], backgroundColor:C.aqua+'cc', borderRadius:4,borderSkipped:false}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:true,...legend11},tooltip:{...tooltip,callbacks:{label:function(ctx){return ' '+ctx.dataset.label+': '+ctx.raw+' wks';}}}},
+      scales:{
+        x:{...baseScales.x,grid:{display:false}},
+        y:{...baseScales.y,title:{display:true,text:'Weeks',font:{size:11},color:C.muted},max:24}
+      }
+    }
+  });
+
+  /* Individual case timelines */
+  const casesBefore=['Case 1','Case 2','Case 3','Case 4','Case 5','Case 6'];
+  const casesAfter=['Case 7','Case 8','Case 9','Case 10','Case 11','Case 12'];
+  const timeBefore=[22,18,14,16,20,10]; // avg 16.7
+  const timeAfter=[7,5,8,6,6,4];        // avg 6.0
+
+  new Chart(document.getElementById('c-rc-cases'),{
+    type:'bar',
+    data:{
+      labels:[...casesBefore,...casesAfter],
+      datasets:[
+        {label:'Before framework',data:[...timeBefore,...new Array(6).fill(null)],backgroundColor:C.orange+'bb',borderRadius:4,borderSkipped:false},
+        {label:'After framework', data:[...new Array(6).fill(null),...timeAfter],   backgroundColor:C.aqua+'bb',  borderRadius:4,borderSkipped:false}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:true,...legend11},tooltip:{...tooltip,callbacks:{label:function(ctx){return ctx.raw!=null?' '+ctx.dataset.label+': '+ctx.raw+' wks':null;}}}},
+      scales:{
+        x:{...baseScales.x,grid:{display:false}},
+        y:{...baseScales.y,title:{display:true,text:'Recovery weeks',font:{size:11},color:C.muted},max:25}
+      }
+    }
+  });
+
+  /* Milestone compression — stacked horizontal bar */
+  /* Before: Diagnosis(2)+BotID(2)+Plan(2)+M1(3)+M2(4)+M3(3)=16 */
+  /* After:  Diagnosis(.5)+BotID(.5)+Plan(1)+M1(1.5)+M2(1.5)+M3(1)=6 */
+  const phases=['Diagnosis','Bottleneck ID','Recovery Plan','Milestone 1','Milestone 2','Milestone 3'];
+  const pColors=[C.violet,C.blue,C.aqua,C.good,C.yellow,C.orange];
+  const before=[2,2,2,3,4,3];
+  const after=[.5,.5,1,1.5,1.5,1];
+
+  new Chart(document.getElementById('c-rc-milestones'),{
+    type:'bar',
+    data:{
+      labels:['After framework (6 wks)','Before framework (16 wks)'],
+      datasets:phases.map((ph,i)=>({
+        label:ph,
+        data:[after[i],before[i]],
+        backgroundColor:pColors[i]+'cc',
+        borderRadius:i===phases.length-1?4:0,
+        borderSkipped:false
+      }))
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      indexAxis:'y',
+      plugins:{
+        legend:{display:true,position:'bottom',labels:{font:{size:11},color:C.sec,boxWidth:9,padding:8}},
+        tooltip:{...tooltip,callbacks:{label:function(ctx){return ' '+ctx.dataset.label+': '+ctx.raw+' wks';}}}
+      },
+      scales:{
+        x:{...baseScales.x,stacked:true,title:{display:true,text:'Weeks',font:{size:11},color:C.muted},max:18},
+        y:{...baseScales.y,stacked:true,grid:{display:false}}
+      }
+    }
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TAB 4 — ENGINE LINE COVERAGE
+═══════════════════════════════════════════════════════════ */
+function initCoverage(){
+
+  /* Engine line risk scores + capacity headroom */
+  const lines=['Line A','Line B','Line C','Line D','Line E','Line F','Line G','Line H','Line I','Line J','Line K','Line L','Line M','Line N','Line O'];
+  const riskScores=[82,74,68,91,55,43,79,35,62,88,47,71,38,85,58];
+  const headroom=[6,12,18,4,24,31,9,38,16,5,28,11,35,7,22];
+
+  new Chart(document.getElementById('c-cv-lines'),{
+    type:'bar',
+    data:{
+      labels:lines,
+      datasets:[
+        {label:'Risk Score',data:riskScores,backgroundColor:riskScores.map(v=>v>75?C.crit+'bb':v>55?C.orange+'bb':C.aqua+'bb'),borderRadius:3,borderSkipped:false,yAxisID:'y'},
+        {label:'Capacity Headroom (%)',data:headroom,type:'line',borderColor:C.blue,backgroundColor:C.blue+'22',borderWidth:2,pointRadius:4,tension:.3,fill:true,yAxisID:'y2'}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:true,...legend11},
+        tooltip:{...tooltip}
+      },
+      scales:{
+        x:{...baseScales.x,grid:{display:false}},
+        y:{...baseScales.y,title:{display:true,text:'Risk Score',font:{size:11},color:C.muted},max:100,position:'left'},
+        y2:{...baseScales.y,title:{display:true,text:'Capacity Headroom (%)',font:{size:11},color:C.muted},max:50,position:'right',grid:{display:false}}
+      }
+    }
+  });
+
+  /* Demand scenario vs committed capacity */
+  const horizonMos=['M1','M2','M3','M4','M5','M6','M7','M8','M9','M10','M11','M12'];
+  const committed=[100,100,100,100,100,100,100,105,108,108,112,112];
+  const high=[88,91,95,100,104,108,113,118,122,126,130,134];
+  const base=[82,85,88,91,93,96,99,101,104,107,109,112];
+  const low= [75,77,80,82,84,86,88,90,92,93,95,97];
+
+  new Chart(document.getElementById('c-cv-demand'),{
+    type:'line',
+    data:{
+      labels:horizonMos,
+      datasets:[
+        {label:'Committed capacity',data:committed,borderColor:C.ink,backgroundColor:'transparent',borderWidth:2.5,borderDash:[6,3],pointRadius:3,tension:0},
+        {label:'High scenario',     data:high,      borderColor:C.crit,  backgroundColor:C.crit+'11',  borderWidth:1.5,pointRadius:3,tension:.3,fill:false},
+        {label:'Base scenario',     data:base,      borderColor:C.blue,  backgroundColor:C.blue+'11',  borderWidth:2,  pointRadius:3,tension:.3,fill:false},
+        {label:'Low scenario',      data:low,       borderColor:C.aqua,  backgroundColor:'transparent',borderWidth:1.5,pointRadius:3,tension:.3,borderDash:[3,3]}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:true,...legend11},tooltip:{...tooltip}},
+      scales:{
+        x:{...baseScales.x},
+        y:{...baseScales.y,title:{display:true,text:'Index (M1=100)',font:{size:11},color:C.muted},min:70,max:140}
+      }
+    }
+  });
+
+  /* Capacity levers — waterfall-style floating bar */
+  /* Baseline 100 → +OT 5 → +Extra shifts 8 → +Subcontract 6 = 119 → +Tooling 12 = 131 */
+  const leverLabels=['Baseline','+ Overtime','+ Extra Shifts','+ Subcontract','(Reversible Total)','+ Tooling Invest.','Full Potential'];
+  const leverBases= [0,   100, 105, 113, 0,   119, 0  ];
+  const leverTops=  [100, 105, 113, 119, 119, 131, 131];
+  const leverColors=[C.blue+'bb',C.aqua+'bb',C.aqua+'bb',C.aqua+'bb',C.good+'22',C.crit+'bb',C.violet+'bb'];
+
+  new Chart(document.getElementById('c-cv-levers'),{
+    type:'bar',
+    data:{
+      labels:leverLabels,
+      datasets:[{
+        label:'Capacity Level (%)',
+        data:leverLabels.map((_,i)=>[leverBases[i],leverTops[i]]),
+        backgroundColor:leverColors,
+        borderRadius:4,borderSkipped:false
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{...tooltip,callbacks:{label:function(ctx){
+          const [b,t]=ctx.raw;
+          return [' Level: '+t+'%',' Gain: +'+(t-b)+'%'];
+        }}}
+      },
+      scales:{
+        x:{...baseScales.x,grid:{display:false}},
+        y:{...baseScales.y,title:{display:true,text:'Capacity index (%)',font:{size:11},color:C.muted},min:0,max:145}
+      }
+    }
+  });
+
+  /* Component criticality matrix table */
+  const engLines=[
+    {line:'Line A (High Vol)',fi:'single',tc:'dual',fp:'single',egr:'multi',risk:'crit'},
+    {line:'Line B',fi:'dual',tc:'single',fp:'dual',egr:'dual',risk:'warn'},
+    {line:'Line C',fi:'multi',tc:'multi',fp:'dual',egr:'multi',risk:'good'},
+    {line:'Line D (High Vol)',fi:'single',tc:'single',fp:'single',egr:'dual',risk:'crit'},
+    {line:'Line E',fi:'dual',tc:'dual',fp:'multi',egr:'multi',risk:'good'},
+    {line:'Line F',fi:'single',tc:'multi',fp:'dual',egr:'single',risk:'warn'},
+    {line:'Line G',fi:'multi',tc:'dual',fp:'multi',egr:'dual',risk:'good'},
+    {line:'Line H (High Vol)',fi:'dual',tc:'single',fp:'dual',egr:'single',risk:'warn'},
+    {line:'Line I',fi:'single',tc:'dual',fp:'multi',egr:'multi',risk:'warn'},
+    {line:'Line J (High Vol)',fi:'single',tc:'single',fp:'dual',egr:'dual',risk:'crit'}
+  ];
+  const srcLabel=s=>s==='single'?'<span class="badge b-crit">Single</span>':s==='dual'?'<span class="badge b-warn">Dual</span>':'<span class="badge b-good">Multi</span>';
+  const riskBadge=r=>r==='crit'?'<span class="badge b-crit">Critical</span>':r==='warn'?'<span class="badge b-warn">High</span>':'<span class="badge b-good">Standard</span>';
+  const ctb=document.getElementById('criticality-tbody');
+  engLines.forEach(r=>{
+    ctb.innerHTML+=`<tr>
+      <td style="font-weight:600;font-size:11px">${r.line}</td>
+      <td>${srcLabel(r.fi)}</td>
+      <td>${srcLabel(r.tc)}</td>
+      <td>${srcLabel(r.fp)}</td>
+      <td>${srcLabel(r.egr)}</td>
+      <td>${riskBadge(r.risk)}</td>
+    </tr>`;
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TAB 5 — DETECTION SPEED
+═══════════════════════════════════════════════════════════ */
+function initDetection(){
+
+  /* Cumulative % of gaps detected by day */
+  const days=Array.from({length:16},(_,i)=>i+1);
+  // Biweekly: review happens on day 14 → 50% caught, day 14+ → ~100%. Approximated as step-like.
+  const biweekly=days.map(d=> d<14?Math.round(d/14*30): d===14?50:d>14?Math.min(100,50+Math.round((d-14)*25)):30);
+  // Daily automated: catches 30% by day 1, ~80% by day 5, 95% by day 8, 100% by day 10
+  const daily=days.map(d=>Math.min(100,Math.round(30+d*5.5+(d>5?d*2:0))));
+
+  new Chart(document.getElementById('c-dt-cumulative'),{
+    type:'line',
+    data:{
+      labels:days.map(d=>'Day '+d),
+      datasets:[
+        {label:'Biweekly review (old)',data:biweekly,borderColor:C.orange,backgroundColor:C.orange+'22',borderWidth:2,fill:true,tension:.2,pointRadius:3},
+        {label:'Daily automated (new)',data:daily,   borderColor:C.aqua,  backgroundColor:C.aqua+'22',  borderWidth:2,fill:true,tension:.3,pointRadius:3}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:true,...legend11},
+        tooltip:{...tooltip,callbacks:{label:function(ctx){return ' '+ctx.dataset.label+': '+ctx.raw+'% detected';}}}
+      },
+      scales:{
+        x:{...baseScales.x},
+        y:{...baseScales.y,min:0,max:100,title:{display:true,text:'% of gaps detected',font:{size:11},color:C.muted}}
+      }
+    }
+  });
+
+  /* Cost of delay by day — bar */
+  const delayDays=['Day 1–2','Day 3–4','Day 5–6','Day 7–8','Day 9–10','Day 11–12','Day 13–14','Day 15–16'];
+  const costStd=[0.2,0.3,0.35,0.40,0.45,0.45,0.48,0.50];     // standard line ($M)
+  const costCrit=[0.35,0.40,0.45,0.50,0.52,0.55,0.55,0.60];  // critical line ($M)
+
+  new Chart(document.getElementById('c-dt-cost'),{
+    type:'bar',
+    data:{
+      labels:delayDays,
+      datasets:[
+        {label:'Standard engine line',data:costStd,backgroundColor:C.yellow+'bb',borderRadius:4,borderSkipped:false},
+        {label:'Critical engine line',data:costCrit,backgroundColor:C.crit+'bb',  borderRadius:4,borderSkipped:false}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:true,...legend11},
+        tooltip:{...tooltip,callbacks:{label:function(ctx){return ' '+ctx.dataset.label+': $'+ctx.raw+'M/day';}}}
+      },
+      scales:{
+        x:{...baseScales.x,grid:{display:false}},
+        y:{...baseScales.y,title:{display:true,text:'$M at risk / day',font:{size:11},color:C.muted},max:0.75}
+      }
+    }
+  });
+
+  /* Dollar value of 8-day advantage — grouped bar by event type */
+  const eventTypes=['Equipment\nFailure','Labor\nShortage','Tooling\nBacklog','Scheduling\nGap'];
+  const lowVal=[1.6,1.2,1.8,0.8];   // 8d × low-end exposure ($M)
+  const highVal=[3.2,2.4,3.6,1.6];  // 8d × high-end exposure ($M)
+
+  new Chart(document.getElementById('c-dt-value'),{
+    type:'bar',
+    data:{
+      labels:['Equipment Failure','Labor Shortage','Tooling Backlog','Scheduling Gap'],
+      datasets:[
+        {label:'Conservative ($M)',data:lowVal, backgroundColor:C.blue+'bb',  borderRadius:4,borderSkipped:false},
+        {label:'Upside ($M)',       data:highVal,backgroundColor:C.violet+'bb',borderRadius:4,borderSkipped:false}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:true,...legend11},
+        tooltip:{...tooltip,callbacks:{label:function(ctx){return ' '+ctx.dataset.label+': $'+ctx.raw+'M per event';}}}
+      },
+      scales:{
+        x:{...baseScales.x,grid:{display:false}},
+        y:{...baseScales.y,title:{display:true,text:'$M protected per event',font:{size:11},color:C.muted},max:4.5}
+      }
+    }
+  });
+}
+</script>
+</body>
+</html>
